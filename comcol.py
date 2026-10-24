@@ -44,6 +44,7 @@ class DroneData:
     )  # WARNING! not got measurement to hand
     wings: MassDist = MassDist(mass=1920, dist=240)
     wheels: MassDist = MassDist(mass=230, dist=160)
+    tail_skid: MassDist = MassDist(mass=0, dist=0)  # WARNING! not got details for this yet
     tail_mass: float = 395  # new lighter foam PLA one
     tail_rods_g_per_mm: float = 0  # WARNING! not got measurement to hand; both rods combined
     desired_centre_of_mass: float = 190
@@ -70,6 +71,7 @@ class DroneData:
                     self.rear_tube_plug.mass,
                     self.wings.mass,
                     self.wheels.mass,
+                    self.tail_skid.mass,
                 ]
             ),
         )
@@ -84,6 +86,7 @@ class DroneData:
                     self.rear_tube_plug.product(),
                     self.wings.product(),
                     self.wheels.product(),
+                    self.tail_skid.product(),
                 ]
             ),
         )
