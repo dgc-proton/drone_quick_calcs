@@ -98,7 +98,7 @@ def main() -> None:
 
     bnds = optimize.Bounds(
         ub=[np.inf],
-        lb=[100],
+        lb=[data.length_tubenose + 100],  # tail can't be in the fuselage
     )
     constr: tuple[optimize.NonlinearConstraint] = (
         optimize.NonlinearConstraint(  # equality constraint on desired CoM
@@ -109,7 +109,7 @@ def main() -> None:
     )
     res: optimize.OptimizeResult = optimize.minimize(
         fun=lambda x: x,  # minimise distance of tail CoM
-        x0=300,  # initial guess
+        x0=data.length_tubenose + 150,  # initial guess
         method="SLSQP",
         bounds=bnds,
         constraints=constr,
@@ -125,7 +125,7 @@ def calc_com(tail_com: float, drone: DroneData) -> float:
 
     tail_com: distance from propeller to tail CoM
     """
-    ROD_EXTRA: float = 50  # extra rod length for fixing etc
+    ROD_EXTRA: float = 50  # extra rod length for fixing it in place etc
     sum_m: float = drone.sum_masses_exc_tail_tailrods
     sum_mr: float = drone.sum_massesxdists_exc_tail_tailrods
     tail_m: float = drone.tail_mass
