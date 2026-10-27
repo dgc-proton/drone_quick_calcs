@@ -4,8 +4,8 @@ All distances are in mm, all masses are in kg.
 Distance axis is one dimensional, measureing from the tip of the propeller at x=0, increasing as
 go further back on the drone.
 
-This is missing some data, and might probably buggy, someone please update and check it. Its using
-minimisation to do a brute force of the tail distance, which isn't elegant but was quick to
+This is missing some data, someone please update and check it. Its using minimisation to do a
+brute force of the tail distance, which isn't elegant but was quick to
 implement.
 """
 from dataclasses import dataclass, field
