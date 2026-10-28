@@ -1,13 +1,12 @@
-"""UoA Aerospace Society - quick script to calculate CoM vs CoL for the drone by Dave Riley.
+"""UoA Aerospace Society - quick script to calculating various CoM vs CoL stuff for the drone.
+
+Script originally written by Dave Riley.
 
 All distances are in mm, all masses are in kg.
 Distance axis is one dimensional, measureing from the tip of the propeller at x=0, increasing as
 go further back on the drone.
-
-This is missing some data, someone please update and check it. Its using minimisation to do a
-brute force of the tail distance, which isn't elegant but was quick to
-implement.
 """
+
 from dataclasses import dataclass, field
 from pprint import pp
 
@@ -21,6 +20,7 @@ class MassDist:
 
     mass: float
     dist: float
+    debug_name: str | None = None
 
     def product(self) -> float:
         """Mass multiplied by distance."""
@@ -44,12 +44,18 @@ class DroneDataFindTailCoM:
     )  # WARNING! not got measurement to hand
     wings: MassDist = MassDist(mass=1920, dist=240)
     wheels: MassDist = MassDist(mass=230, dist=160)
-    tail_skid: MassDist = MassDist(mass=0, dist=0)  # WARNING! not got details for this yet
+    tail_skid: MassDist = MassDist(
+        mass=0, dist=0
+    )  # WARNING! not got details for this yet
     tail_mass: float = 395  # new lighter foam PLA one
-    tail_rods_g_per_mm: float = 0  # WARNING! not got measurement to hand; both rods combined
+    tail_rods_g_per_mm: float = (
+        0  # WARNING! not got measurement to hand; both rods combined
+    )
     desired_centre_of_mass: float = 190
     centre_of_lift: float = 222
-    length_tubenose: float = 330 + 110  # combined length of tube and nose assembly when assembed
+    length_tubenose: float = (
+        330 + 110
+    )  # combined length of tube and nose assembly when assembed
     sum_masses_exc_tail_tailrods: float = field(
         init=False
     )  # sum of masses excluding tail and tailrods
@@ -75,7 +81,8 @@ class DroneDataFindTailCoM:
                 ]
             ),
         )
-        super().__setattr__("sum_massesxdists_exc_tail_tailrods", 
+        super().__setattr__(
+            "sum_massesxdists_exc_tail_tailrods",
             sum(
                 [
                     self.nose_assembly.product(),
@@ -99,26 +106,30 @@ class DroneDataFindFuseLength:
     This is for finding the fuselage length.
     """
 
-    nose_assembly: MassDist = MassDist(mass=583, dist=65)
+    nose_assembly: MassDist = MassDist(mass=583, dist=65, debug_name="nose assembly")
     fuselage_mass: float = 518
     fuselage_min_length: float = 200  # minimum fuselage length to fit all the stuff in
-    battery: MassDist = MassDist(mass=865, dist=195+244)
-    motor_speed_contr: MassDist = MassDist(mass=98, dist=195+244)
-    flight_contr: MassDist = MassDist(mass=76, dist=315+244)
+    battery: MassDist = MassDist(mass=865, dist=402, debug_name="battery")
+    motor_speed_contr: MassDist = MassDist(
+        mass=98, dist=402, debug_name="motor speed controller"
+    )
+    flight_contr: MassDist = MassDist(mass=76, dist=522, debug_name="flight controller")
     rear_fuselage_plug: MassDist = MassDist(
-        mass=0, dist=0
-    )  # WARNING! not got measurement to hand
-    wings: MassDist = MassDist(mass=1920, dist=240+244)
-    wheels: MassDist = MassDist(mass=230, dist=160+244)
-    tail_skid: MassDist = MassDist(mass=0, dist=0)  # WARNING! not got details for this yet
-    tail: MassDist = MassDist(mass=395, dist=700+244)  # new lighter foam PLA one
-    tail_rods: MassDist = MassDist(mass=0, dist=0)  # WARNING! not got measurement to hand; both rods combined
-    desired_centre_of_mass: float = 190 + 244
-    centre_of_lift: float = 222 + 244
+        mass=200, dist=677, debug_name="rear fuselage plug"
+    )
+    wings: MassDist = MassDist(mass=1920, dist=447, debug_name="wings")
+    wheels: MassDist = MassDist(mass=230, dist=367, debug_name="wheels")
+    tail_skid: MassDist = MassDist(mass=15, dist=1057, debug_name="tail skid")
+    tail: MassDist = MassDist(
+        mass=395, dist=907, debug_name="tail"
+    )  # new lighter foam PLA one
+    tail_rods: MassDist = MassDist(
+        mass=0.055, dist=707, debug_name="tail rods"
+    )  # WARNING! mass incorrect!
+    desired_centre_of_mass: float = 397
+    centre_of_lift: float = 429
     length_nose_assembly: float = 110
-    sum_masses_exc_fuse: float = field(
-        init=False
-    )  # sum of masses excluding fuselage
+    sum_masses_exc_fuse: float = field(init=False)  # sum of masses excluding fuselage
     sum_massesxdists_exc_fuse: float = field(
         init=False
     )  # sum of masses x distances excluding fuselage
@@ -142,7 +153,8 @@ class DroneDataFindFuseLength:
                 ]
             ),
         )
-        super().__setattr__("sum_massesxdists_exc_fuse", 
+        super().__setattr__(
+            "sum_massesxdists_exc_fuse",
             sum(
                 [
                     self.nose_assembly.product(),
@@ -162,20 +174,73 @@ class DroneDataFindFuseLength:
 
 def main() -> None:
     """Run the function you want here. Make sure the data is set in the correct class first!"""
-    FIND_FUSELAGE_LENGTH: bool = True
+    FIND_FUSELAGE_LENGTH: bool = False
     FIND_TAIL_COM: bool = False
+    CHECK_COM: bool = True
 
     if FIND_TAIL_COM:
         find_tail_com()
     if FIND_FUSELAGE_LENGTH:
         find_fuselage_length()
+    if CHECK_COM:
+        # simple get user input for length, no checks done on it so be careful
+        # fuseelage CoM = (fuse_length/2) + nose_assembly_length
+        check_com(
+            fuse_com_mm=float(
+                input("Enter fuselage CoM in mm for checking overall CoM: ")
+            )
+        )
+
+
+def check_com(*, fuse_com_mm: float) -> None:
+    """Calculate actual CoM using DroneDataFindFuseLength data and distance to fuselage CoM."""
+    data: DroneDataFindFuseLength = DroneDataFindFuseLength()
+
+    points: list[MassDist] = [
+        data.nose_assembly,
+        MassDist(mass=data.fuselage_mass, dist=fuse_com_mm, debug_name="fuselage"),
+        data.battery,
+        data.motor_speed_contr,
+        data.flight_contr,
+        data.rear_fuselage_plug,
+        data.wings,
+        data.wheels,
+        data.tail_skid,
+        data.tail,
+        data.tail_rods,
+    ]
+
+    sum_mr: float = 0
+    sum_m: float = 0
+    print("\nCom calculations:")
+    for point in points:
+        print(f"{point.debug_name}: {point.mass}g @{point.dist}mm = {point.product()} g*mm")
+        sum_mr += point.product()
+        sum_m += point.mass
+
+    print(f"sum of masses = {sum_m}")
+    print(f"sum of (masses * distance) = {sum_mr}")
+    com: float = sum_mr / sum_m
+
+    if com < data.centre_of_lift:
+        msg_start: str = "CoM is in front of CoL, design possibly stable:\n"
+    else:
+        msg_start: str = "CoM is not in front of CoL, design unstable:\n"
+
+    print(msg_start + (f"CoM: {com:.2f}mm\nCoL: {data.centre_of_lift:.2f}mm"))
 
 
 def find_fuselage_length() -> None:
-    """Find fuselage length, all other parameters are fixed."""
+    """Find fuselage length, all other parameters are fixed.
+
+    Because there is only one design varibale (no interdependence) this could and probably should
+    be rewritten as a simple bit of maths instead of an optimisation problem.
+    """
     data: DroneDataFindFuseLength = DroneDataFindFuseLength()
     bnds = optimize.Bounds(
-        ub=[np.inf],  # not enforcing an upper bound, just be sensible when evaluating the results
+        ub=[
+            np.inf
+        ],  # not enforcing an upper bound, just be sensible when evaluating the results
         lb=[data.fuselage_min_length],
     )
     constr: tuple[optimize.NonlinearConstraint] = (
@@ -231,7 +296,7 @@ def find_tail_com() -> None:
     print(f"\nTail CoM: {msg}\n")
 
 
-def com_from_fuse_length(fuse_l: float, drone:DroneDataFindFuseLength) -> float:
+def com_from_fuse_length(fuse_l: float, drone: DroneDataFindFuseLength) -> float:
     """Calculates the fuselage length using sum(masses*dists)/sum(masses).
 
     Returns current overall CoM
@@ -241,7 +306,7 @@ def com_from_fuse_length(fuse_l: float, drone:DroneDataFindFuseLength) -> float:
     fuse_m: float = drone.fuselage_mass
     nose_l: float = drone.length_nose_assembly
 
-    sum_masses_dists: float = sum_mr + (fuse_m * ((fuse_l/2)+nose_l))
+    sum_masses_dists: float = sum_mr + (fuse_m * ((fuse_l / 2) + nose_l))
     sum_masses: float = sum_m + fuse_m
     return sum_masses_dists / sum_masses
 
