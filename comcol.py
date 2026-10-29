@@ -3,7 +3,7 @@
 Script originally written by Dave Riley.
 
 All distances are in mm, all masses are in kg.
-Distance axis is one dimensional, measureing from the tip of the propeller at x=0, increasing as
+Distance axis is one dimensional, measuring from the tip of the propeller at x=0, increasing as
 go further back on the drone.
 """
 
@@ -105,6 +105,7 @@ class DroneDataGeneral:
 
     nose_assembly: MassDist = MassDist(mass=583, dist=65, debug_name="nose assembly")
     fuselage: MassDist = MassDist(mass=680, dist=360)
+    fuselage_g_per_mm: float = 680 / 330  # used in unknown fuselage length calcs
     fuselage_min_length: float = 200  # minimum fuselage length to fit all the stuff in
     battery: MassDist = MassDist(mass=865, dist=225, debug_name="battery")
     motor_speed_contr: MassDist = MassDist(
@@ -344,13 +345,13 @@ def find_tail_com() -> None:
 
 
 def com_from_fuse_length(fuse_l: float, drone: DroneDataGeneral) -> float:
-    """Calculates the fuselage length using sum(masses*dists)/sum(masses).
+    """For calculating the fuselage length using sum(masses*dists)/sum(masses).
 
     Returns current overall CoM
     """
     sum_m: float = drone.sum_masses_exc_fuse
     sum_mr: float = drone.sum_massesxdists_exc_fuse
-    fuse_m: float = drone.fuse_com_unknown_fuselage_mass
+    fuse_m: float = drone.fuselage_g_per_mm * fuse_l
     nose_l: float = drone.length_nose_assembly
 
     sum_masses_dists: float = sum_mr + (fuse_m * ((fuse_l / 2) + nose_l))
