@@ -173,21 +173,15 @@ def main() -> None:
     """Run the function you want here. Make sure the data is set in the correct class first!"""
     FIND_FUSELAGE_LENGTH: bool = False
     FIND_TAIL_COM: bool = False
-    CHECK_COM: bool = False
-    COM_WINGS_UNKNOWN: bool = True
+    CHECK_COM: bool = True
+    COM_WINGS_UNKNOWN: bool = False
 
     if FIND_TAIL_COM:
         find_tail_com()
     if FIND_FUSELAGE_LENGTH:
         find_fuselage_length()
     if CHECK_COM:
-        # simple get user input for length, no checks done on it so be careful
-        # fuseelage CoM = (fuse_length/2) + nose_assembly_length
-        check_com(
-            fuse_com_mm=float(
-                input("Enter fuselage CoM in mm for checking overall CoM: ")
-            )
-        )
+        check_com()
     if COM_WINGS_UNKNOWN:
         com_wings_unknown(dist_wingcom2overallcom=50)
 
@@ -238,13 +232,13 @@ def com_wings_unknown(*, dist_wingcom2overallcom: float) -> None:
     print(f"Wings CoM = {wings_com:.2f}mm")
 
 
-def check_com(*, fuse_com_mm: float) -> None:
+def check_com() -> None:
     """Calculate actual CoM using DroneDataFindFuseLength data and distance to fuselage CoM."""
     data: DroneDataGeneral = DroneDataGeneral()
 
     points: list[MassDist] = [
         data.nose_assembly,
-        MassDist(mass=data.fuse_com_unknown_fuselage_mass, dist=fuse_com_mm, debug_name="fuselage"),
+        data.fuselage,
         data.battery,
         data.motor_speed_contr,
         data.flight_contr,
