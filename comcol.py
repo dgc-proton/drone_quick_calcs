@@ -34,7 +34,6 @@ class DroneData:
     nose_assembly: MassDist = MassDist(mass=583, dist=65, debug_name="nose assembly")
     length_nose_assembly: float = 110
     fuselage: MassDist = MassDist(mass=680, dist=360)
-    fuselage_g_per_mm: float = 518 / 330  # used in unknown fuselage length calcs
     battery: MassDist = MassDist(mass=865, dist=225, debug_name="battery")
     motor_speed_contr: MassDist = MassDist(
         mass=98, dist=225, debug_name="motor speed controller"
@@ -50,8 +49,6 @@ class DroneData:
         mass=395, dist=1145, debug_name="tail"
     )  # new lighter foam PLA one
     tail_rods: MassDist = MassDist(mass=60, dist=800, debug_name="tail rods")
-    desired_centre_of_mass: float = 397
-    desired_offset_com_wingcom: float = 35  # how far we want CoM in front of the wing CoM
     centre_of_lift: float = 397
 
 
